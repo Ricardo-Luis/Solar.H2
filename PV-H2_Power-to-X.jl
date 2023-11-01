@@ -14,28 +14,13 @@ macro bind(def, element)
     end
 end
 
-# ╔═╡ 7b9e2ba5-3b8f-40a8-892d-862a361e0b93
-using JuMP
-
-# ╔═╡ 8f50ab05-0053-46c5-97bc-751982cfc5f7
-using SankeyPlots
-
-# ╔═╡ 1592cd26-4c3a-4171-b306-e187b43f7258
-using Dates
-
 # ╔═╡ a66678a3-59ab-43cc-8a0d-fdeb0770f3e6
-using PlutoTeachingTools, ShortCodes, PlutoUI, Plots
-
-# ╔═╡ f09d1eda-bfcb-4ab9-b1ce-2f59fd9747c9
-ChooseDisplayMode()
+using PlutoTeachingTools, ShortCodes, PlutoUI, Plots, Statistics, SankeyPlots
 
 # ╔═╡ 60119a67-1aa0-4c7e-8514-45420e576d83
 md"""
 # ECONOMIC EVALUATION OF GREEN HYDROGEN AND SYNTHETIC FUEL PRODUCTION WITH DC MICROGRID INTEGRATION
 """
-
-# ╔═╡ c3968558-28ee-49f1-9e87-d2d88f166abb
-
 
 # ╔═╡ 394b7f89-7259-4339-b6c9-df9e82fba253
 md"""
@@ -43,29 +28,226 @@ md"""
 $\text{ \:Ricardo Luís\quad\:\: João Gomes\quad\:\: Jaime Puna\quad\:\: João Lagarto\quad\:\: Teodoro Trindade\quad\:\: Jorge Sousa\quad\:\: Armando Cordeiro}$
 """
 
+# ╔═╡ 2021c870-64ad-4a24-8b92-c40821238ed5
+
+
+# ╔═╡ e6925da9-67c8-4bb1-8830-1083b7da2a48
+
+
 # ╔═╡ 6a4a8025-9184-4e93-a80e-eddea4857658
-
-
-# ╔═╡ c5c096c9-36d2-49f3-9ce1-853eabf1aaf0
-
-
-# ╔═╡ 2ba7396c-20f4-4995-a609-7794e34c1648
-
-
-# ╔═╡ 7d086988-14ac-47fb-87dd-ed0235fa13d3
-
-eeic_url="https://eeic2023.isel.pt/wp-content/uploads/2023/06/EEIC_2023_logo.png";
-
-# ╔═╡ 0323250e-3146-45ce-a87c-d8e53fa25938
-TwoColumn(md"$(Resource(eeic_url, :height => 60))", md" $\textbf{\color{green}{Energy Economics Int. Conf.}, } \rm 7^{th} \text{APEEN Annual Conf., ISEL, Lisbon, November 2-3, 2023}$") 
-
-# ╔═╡ e7002bff-26cc-4f1d-80cb-89da0adcb7dd
 
 
 # ╔═╡ 0d054678-b051-4abe-a77d-6af8978edb28
 md"""
 # OBJECTIVES
 """
+
+# ╔═╡ 2ba7396c-20f4-4995-a609-7794e34c1648
+
+
+# ╔═╡ 28680859-6a45-45ad-be10-6c25acec69d1
+md"""
+
+- **Green hydrogen systems** $\implies$ energy transition  $\implies$ decarbonise the economy in several sectors  $\implies$ clean and low-carbon future.
+
+
+- **Electrolytic DC microgrid**:
+  - Renewable energy sources (RES) $\implies$ increase the efficiency of H2 production, storage and re-electrification;
+  - Photovoltaic (PV) generation, to supply electricity demand of a given installation;
+
+
+- **Electrolytic production of syngas**: uses the surplus of RES production and can be stored or used in mobility applications, mixed with traditional fuels in internal combustion engines;
+  - Syngas production uses an alkaline electrolysis process with the addition of biomass, which has an added bioenergy value, due to the possible carbon capture and storage. 
+
+
+- **Economic evaluation**:, the main economic indicators will be computed, such as the 
+  - levelized cost of hydrogen (LCOH), 
+  - levelized cost of energy (LCOE), 
+  - return on investment (ROI). 
+"""
+
+# ╔═╡ 6dc1e172-1ab4-41cc-8f37-61dbea2bbd74
+
+
+# ╔═╡ 26dc5a86-b791-43d7-8765-64d05028339e
+md"""
+# LABORATORY IMPLEMENTATION
+"""
+
+# ╔═╡ ca251372-9a6f-409c-aa17-1349fa142f1a
+html"""
+<iframe frameborder="0" style="width:100%;height:700px;" src="https://viewer.diagrams.net/?tags=%7B%7D&highlight=0000ff&edit=_blank&layers=1&nav=1&title=solar.H2.drawio#R7V3bcuI6Fv2aVM08hLJly5fHBMJ0T6XrpE7XuT11OViA5xiLMSaB%2Fvoj2TLYWwIbYgFJ6KruxrKQL2tr7aWtLXFj9Wer%2F6TBfPqNhiS%2BQUa4urEGNwiZyEDsP16yLko8zy8KJmkUikrbgu%2FRTyIKDVG6jEKyqFXMKI2zaF4vHNEkIaOsVhakKX2tVxvTuH7VeTAhUsH3URDLpX9EYTYVpabjb098IdFkKi7tIbc4MQvKyuJJFtMgpK%2BVIuvhxuqnlGbFp9mqT2L%2B8sr3UnxvuOPs5sZSkmRtvvDrV%2FPr09N%2Ff%2Fv6q%2BEGLk3x78HwVtzsIluXD0xC9vzikKbZlE5oEsQP29L7lC6TkPBWDXa0rfNI6ZwVmqzwfyTL1gLMYJlRVjTNZrE4S1ZR9qf4Ov%2F8F%2F%2Fcw%2BJosKqcGqwrB08kjWYkI2lZlmTp%2Bs%2ByUX5QaYkfbpvKj9bVI9jYmCaZuGPTySuFd9x%2B2HFCE1KUDKM4FvWLF8ff1k48RNGCLtMR2QNCaddBOiHZnnpoYzWsuxHK7j5ds%2B%2BlJA6y6KV%2BH4Gw%2B8mm3tY02AdhHQdYimj3JYiX4kqS6byQNItY13kMnkn8RBdRFtGEnXqmWUZn7J1tugB%2FgWGwmG6sKIijCa86Yi%2BPQ3I%2FZm%2B6T2Oa5k1bRv6nbkbl5e7EdzNufveLLKV%2Fb%2FqqVVx1zu9wtppwjuqRmBFFyr%2FZm0WLEXv2ICF0uejNaEL54Y%2FnIGN3sc5tPQvEU9z6W9j5pclqP%2FAyUOILtisYQVCiZQouea0QjCHqTCvc4hiasEVXbDVha58dW0vC1kS%2FS%2FCyJ87qCEioQUhmURgW%2FoAsop%2FBc94Uf41zGiVZ%2Fhj4%2FgYPeFvMBSwEt25gLC1AsGvVKMoiQMkd4IMxrvc9S8bHVsCDdMFjX%2BHZA49dYnEueLxmZpSFQgWmulaSNIYQQqUoOlYIyby4kUZGz93Iob9qakitjc4gayxLbRMVzLEC87KstfwRV3ji9l9hbAd4YxfYUvGc4ltVfQ0a8qBbN0BDxYuQGmLGE6wr1UT%2F3HnDvqW%2BztbMixa3Rr95p8f3A19rP9hrv0iT%2FV64XWJUhxlDc2prl6ZhNLTUkWHCDoBPYZiOwjCdmDvLMHqpGajz%2FyUfat9zX3or3OcdqxGTcbY9yz5NxP95K88pLGG3mTddloJuULf012mUke%2FzICfKVyZR692iuSN04FQdwHDIk52qaam8qq3LrZbRHQVs%2FJUoceMnbguZwmEznflKhg3ZTDwZ%2Fxr0%2F12Bq2hyB16ytGqrf9pLMJUV7GZEWw%2FsG3%2FUNBSxtKHeIoZwpBexd4eDmoJBimBUqcfUCqzeSVG3oslp6Zyci9JMcPTa1jdhEzRktnNNXXkPUxX56ISHLCMnorsrESHHBzERp2VMRB8RyUGRfUREWb2DhnWbQHHBROW0hrfHwzeTx7k6u7nLjxzc2VFDQ7o7uxxruaLeFnXb97tBXWpIN%2Bp4J8VfRwgrIPQvaISgGth9YK3YHE0TdtyoDMuKF0Mldkdi0T%2BzVnR3Esl1zNqRVEQuiP%2B7Zx%2BzqmYAukAd5wOEXq%2FH%2FkXO1QI2rsgCIvHcgwXsyY6nMUfmDVkx9ckgt2E2aBsnr4XJN25thyc7NNtFJWdVU%2Fh1f8dbHi3Tl9xgzG4DJaWsbPSHeEeo5DCvdmgwHAMmM2F2FqjvlolyR9b3ThBrL195hQuf5LnqBkEbLOZFnt44WnG7aKFwQb6IExjGeCy%2BWSkf539U5mm5htHvl9cSt1oGI9%2BW7gFQbumuTDj07c5fqWbquhjuDH97eGQn%2Bw%2BPj7vGOacdVXVxteWcMwjlTrqH%2Fv7j3Q7grIsbv6HDYv1HBFsq%2FgiEXpTppWi%2FIz0%2BQtPaV51v%2FFW3Du%2FI8RdsR1eCg3QdfALXhi7MXBt030c2Vw%2F6VHykvQJW1JX3AK%2FjncJeVTMYHU5c3bK%2F2Pjy832PR3Vk%2BLoeYCf33ANUJM9rPKV0kgazWZ72iYxBnz8ifWXvl6G2nM%2FjtQYEc4nVGX5dZZRKbKJAC8toQSfZHVryfEQOT0yDcCGhon0wNTYCywjkwRQY0VfO3A%2Fc4oz2wZTltOtZ%2BkZTSBXz%2FbQqFl%2BSLMDOkaoAqEvTAbdysCroeqIBHZZ0%2FsG16EUZnemCJo7Vosi8OKuTA0fFxFTunb5FIy4pWAuXr%2Fw6Ug62bffq6COskHr%2BKaVe2TAQD8McoxFN8gdOPw9GyLLrTsFSyDvVgiF9CMlxrxyhu0%2BKkANWdF0AQoelgR28pmtP4pe5d2lL45xdXbmHAfHGI5VCd0YeeR4f5IcvfDGMWWqi0orggr%2FWi7RAMopjuW%2F0wy1v2N8%2FnefDNTr1%2BnqCSJY8FP1SBnwWy%2BdNSKgSBKoU%2F%2FJ5SMwHYJacdj4O05cddyiHvYnCMPFCW0VhHnq2nOoS2e2y2Oaku%2Fa015x1579LfnRgbtyx%2FOiWhtX1Ita6KnDsBnoEwydQXxM9yjH2h3x7CRqvfyo03OVNC8MVmcp5YaQwS33zwpYcUTvA53wel2NjYPGGIhh6Wp%2BjeS%2BEA3yO%2Bxanw5OEPGUW23D4gH2%2F4nQO2ZehQ6djo3fhdBwwE%2BYduzDIA%2BLXhexz9uCYJQfHfrmylkIog%2Bxd7LgSa3mnJK3Sks5FWsdzT13wGifjnrMuFXGg0zuSUUA7UrigIxUrXQYBg9WgSm05wHgXfaKAIlhO6Cgk7WkZBjUzzPalmF2MDHSktcAAlKtKlFANFbRtXGefOU77llgF6j5YcS5Kxqbfs0B0AeqzA9YCw7Yk0dgRNfPb9tSX0kvPLbYWeAd0AHf4cA2rpwh6qgjBtXQRghyu%2FkayIJaXDEzXYRqFRINTvMgcN9vHYKbaVez145wyy832Za4%2B4cbSBwSL96yEE5k1zRs7qHS8wqO0pfoWMr0MozWHCFy16Zxm02gsD7%2Bu42aV%2BrJA%2F0Uy2ap8vL5Fry3EV4duDKlR22wjXbbQarWfbaEBdrsKw%2BIeAlsGq7Z0tu2eq%2BBX29cGkOwMHxKSTta7F9B1szBvMQ%2BSsmyR0ZT%2FfkKl91bOtlxN92E7NXZc6JbbThxjbWbTYuI4muW%2FiVFFRBQNotmEXTaOGEUPR3E0%2FxGkzFSGE8JMjwux4VO8nPwwkbdif3vzZKLqxDINqDpvK4KoSN%2BulK8HphoVO1Cr4gvalBSWQ89XxPYi5p8ZMUcWPRJitV0R9kYx2sQt2u3EcNINJrT9WErpjZv3ffDVVnOqzHGwzODYbcUxsG5TVywbTDgjt2EDCpApYjZkuEn10QmiMY4cLO9mmWSezlvkw0O59VFXUHYVaEb1KUKn5SIvfXSNJBtRLZ8sflmGJtHoplispwHBi4wuYRBGVS%2FL6ya4xA63P4hWkMD2Z%2BWsh38A"></iframe>
+"""
+
+# ╔═╡ 1ffa7d33-0ac5-45d5-bac9-6dd87f04e746
+md"""
+Fig.1: DC microgrid scheme
+"""
+
+# ╔═╡ 4d99b0ab-6b33-4151-a588-879a067b214b
+
+
+# ╔═╡ 010b1881-c38b-401e-ae17-2454bada5ff5
+
+
+# ╔═╡ 835e2385-67fb-482e-b20b-54892e91f0d0
+
+
+# ╔═╡ d79eec48-ab14-427b-9f2a-188026c077f2
+md"""
+$(Resource("https://i.imgur.com/zoHNvD2.jpg", :width => 940))
+\
+Fig. 2: DC microgrid implementation
+"""
+
+# ╔═╡ e7032de2-0abf-4fee-99b6-9c42a0a0cf0e
+
+
+# ╔═╡ eb5030a1-38ad-4c1d-8396-5339b2e9ded1
+md"""
+## DC microgrid results 
+"""
+
+# ╔═╡ b1d3a096-d314-49d0-b411-3f0f672a4472
+md"""
+Fig. 3: Lab tests: Electrolizer (left); Fuelcell (right).
+"""
+
+# ╔═╡ cb63e259-0ae8-4ab7-b947-845cccd14edd
+md"""
+## Lab syngas production
+"""
+
+# ╔═╡ c60c81a2-59de-4a1e-9fc2-9b8222500723
+md"""
+![](https://github.com/Ricardo-Luis/Solar.H2/blob/main/syngas.png?raw=true)
+
+\
+Fig. 4: Syngas production. *Courtesy*: **João Gomes, Jaime Puna, Diogo Martins, Sila Ozkan,** "Obtaining synthesis gas via co-electrolysis of water and added biomass", EEIC'23, Lisboa, Nov. 2-3, 2023
+"""
+
+# ╔═╡ 23d0e7e4-53c1-4831-9682-a00ef7724ae6
+
+
+# ╔═╡ 787f3852-638c-4bf4-b858-08097ca2fe69
+md"""
+# Energy Flow diagram
+"""
+
+# ╔═╡ 1e5ccb00-5c36-4b9c-ba6c-9a7ce3301ffa
+md"""
+Fig. 5: Sankey diagram of the H2 flow value seen in Power-to-X technologies.
+
+\
+The following **Power-to-X** and related energy storage technologies are considered:
+
+- **Power-to-Power**: pumped hydro storage, secondary batteries, compressed air energy storage;
+- **Power-to-Gas**: H2, syngas;
+- **Power-to-Liquid**: Liquid H2, methanol, biofuel, synthetic fuels;
+- **Power-to-Solid**: H2 metal hydride storage.
+"""
+
+# ╔═╡ 8b1e4d54-d043-4fad-a080-b680b8e7004b
+
+
+# ╔═╡ 2a8b7444-b8f2-4129-963c-2ec7da34d0a6
+md"""
+# NOTEBOOK
+"""
+
+# ╔═╡ b68a96a3-1932-4be0-a141-31687c7d9f48
+TwoColumnWideLeft(md"Fast⭐Dynamic⭐Reproducible⭐Composable⭐General⭐Open source", md"A free, open source Julia programming environment. Designed to make learning and teaching scientific programming simple!")
+
+# ╔═╡ 5a71fae5-3892-4097-bdaf-06243c413cc8
+md"""
+Links:
+- [The Julia Programming Language](https://julialang.org/)
+- [Pluto.jl — interactive Julia programming environment](https://plutojl.org/)
+"""
+
+# ╔═╡ 219174eb-e4dd-4cf5-a6d0-4c1092220cac
+
+
+# ╔═╡ 60dc702f-a5c2-4a5f-9a55-ee1ab5d45a16
+md"""
+# Thank You!
+
+\
+\
+
+## Economic Evaluation of Greeen Hydrogen and Synthetic Fuel Production with DC Microgrid Integration
+\
+
+$\text{ \:Ricardo Luís\quad\:\: João Gomes\quad\:\: Jaime Puna\quad\:\: João Lagarto\quad\:\: Teodoro Trindade\quad\:\: Jorge Sousa\quad\:\: Armando Cordeiro}$
+
+\
+**ACKNOWLEDGEMENT:** This work is supported by IPL under Project IPL/2022/SOLAR H2_ISEL.
+
+\
+"""
+
+# ╔═╡ b81df42a-65ad-47e8-9284-e43649780ac4
+
+
+# ╔═╡ d4a2210b-1ba4-43a2-abc0-f05d5f3369e6
+md"""
+# Setup presentation for EEIC'23
+"""
+
+# ╔═╡ 3ffee0c4-c356-43ac-91bc-df98c714c301
+md"""
+## notebook links
+"""
+
+# ╔═╡ c5c096c9-36d2-49f3-9ce1-853eabf1aaf0
+QR_code="https://github.com/Ricardo-Luis/Solar.H2/blob/main/qrcode.png?raw=true";
+
+# ╔═╡ f77c5b11-ab83-4d8b-bb53-af6f099c149b
+ThreeColumn(md"Dowload from GitHub repository:", md"$(Resource(QR_code, :height => 250))", md"")
+
+# ╔═╡ 4411700f-84a0-4884-b5d7-f86200b34a4d
+ThreeColumn(md"Dowload from GitHub repository:", md"$(Resource(QR_code, :height => 300))", md"")
+
+# ╔═╡ 7d086988-14ac-47fb-87dd-ed0235fa13d3
+eeic_url="https://eeic2023.isel.pt/wp-content/uploads/2023/06/EEIC_2023_logo.png";
+
+# ╔═╡ 0323250e-3146-45ce-a87c-d8e53fa25938
+TwoColumn(md"$(Resource(eeic_url, :height => 50))", md" $\textbf{\color{green}{Energy Economics International Conference}, } \rm 7^{th} \text{APEEN Annual Conf., ISEL, Lisbon, November 2-3, 2023}$") 
+
+# ╔═╡ 8ee3b310-59b6-4c03-8268-a1f7b7a88e5b
+TwoColumn(md"$(Resource(eeic_url, :height => 50))", md" $\textbf{\color{green}{Energy Economics International Conference}, } \rm 7^{th} \text{APEEN Annual Conf., ISEL, Lisbon, November 2-3, 2023}$")
+
+# ╔═╡ e7002bff-26cc-4f1d-80cb-89da0adcb7dd
+Julia_logo="https://github.com/JuliaLang/julia-logo-graphics/blob/master/images/julia-logo-color.png?raw=true";
+
+# ╔═╡ 2d187d7b-647e-4985-9f86-66d4e244849b
+Pluto_logo="https://raw.githubusercontent.com/fonsp/Pluto.jl/dd0ead4caa2d29a3a2cfa1196d31e3114782d363/frontend/img/logo_white_contour.svg";
+
+# ╔═╡ eb38cec0-2874-4926-b382-0b0a26f6e9ca
+md"""
+ $$\quad\quad\quad\quad \textbf{Programming language \quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad Integrated Development Environment}$$
+\
+\
+\
+$$\quad\quad\quad\quad$$ $(Resource(Julia_logo, :height => 120)) $$\quad\quad\quad\quad\quad\quad\quad\quad\quad$$ $(Resource(Pluto_logo, :height => 110))
+"""
+
+# ╔═╡ a5284c30-4807-45b9-87d3-a4eaead8cb1f
+ISEL_logo="https://www.isel.pt/sites/default/files/NoPath%20-%20Copy%402x_0.png";
+
+# ╔═╡ 586aa406-4a0d-4ea4-ae72-b902b058d91d
+md"""
+$(Resource(ISEL_logo, :height => 80))
+"""
+
+# ╔═╡ 98888c66-7f45-4d1d-82cc-35453b7053c6
+
+
+# ╔═╡ 38924027-24cd-4957-bb5f-1c3f422cae65
+
+
+# ╔═╡ 15db28e6-b800-4e43-b4ff-079dae190e71
+
 
 # ╔═╡ bf816930-4a28-11ed-18ae-ff9176a0e53f
 md"""
@@ -103,12 +285,15 @@ md"""
 
 """
 
+# ╔═╡ 53ddc08a-e70d-4095-9a75-40ee8dbb8211
+
+
 # ╔═╡ d7328acf-75dd-4a74-93e3-56a493b8f72e
 md"""
 ## Workbench draft
 """
 
-# ╔═╡ ca251372-9a6f-409c-aa17-1349fa142f1a
+# ╔═╡ b2ad314e-b115-4896-be75-2e29664f1873
 html"""
 <iframe frameborder="0" style="width:100%;height:700px;" src="https://viewer.diagrams.net/?tags=%7B%7D&highlight=0000ff&edit=_blank&layers=1&nav=1&title=solar.H2.drawio#R7V3bcuI6Fv2aVM08hLJly5fHBMJ0T6XrpE7XuT11OViA5xiLMSaB%2Fvoj2TLYWwIbYgFJ6KruxrKQL2tr7aWtLXFj9Wer%2F6TBfPqNhiS%2BQUa4urEGNwiZyEDsP16yLko8zy8KJmkUikrbgu%2FRTyIKDVG6jEKyqFXMKI2zaF4vHNEkIaOsVhakKX2tVxvTuH7VeTAhUsH3URDLpX9EYTYVpabjb098IdFkKi7tIbc4MQvKyuJJFtMgpK%2BVIuvhxuqnlGbFp9mqT2L%2B8sr3UnxvuOPs5sZSkmRtvvDrV%2FPr09N%2Ff%2Fv6q%2BEGLk3x78HwVtzsIluXD0xC9vzikKbZlE5oEsQP29L7lC6TkPBWDXa0rfNI6ZwVmqzwfyTL1gLMYJlRVjTNZrE4S1ZR9qf4Ov%2F8F%2F%2Fcw%2BJosKqcGqwrB08kjWYkI2lZlmTp%2Bs%2ByUX5QaYkfbpvKj9bVI9jYmCaZuGPTySuFd9x%2B2HFCE1KUDKM4FvWLF8ff1k48RNGCLtMR2QNCaddBOiHZnnpoYzWsuxHK7j5ds%2B%2BlJA6y6KV%2BH4Gw%2B8mm3tY02AdhHQdYimj3JYiX4kqS6byQNItY13kMnkn8RBdRFtGEnXqmWUZn7J1tugB%2FgWGwmG6sKIijCa86Yi%2BPQ3I%2FZm%2B6T2Oa5k1bRv6nbkbl5e7EdzNufveLLKV%2Fb%2FqqVVx1zu9wtppwjuqRmBFFyr%2FZm0WLEXv2ICF0uejNaEL54Y%2FnIGN3sc5tPQvEU9z6W9j5pclqP%2FAyUOILtisYQVCiZQouea0QjCHqTCvc4hiasEVXbDVha58dW0vC1kS%2FS%2FCyJ87qCEioQUhmURgW%2FoAsop%2FBc94Uf41zGiVZ%2Fhj4%2FgYPeFvMBSwEt25gLC1AsGvVKMoiQMkd4IMxrvc9S8bHVsCDdMFjX%2BHZA49dYnEueLxmZpSFQgWmulaSNIYQQqUoOlYIyby4kUZGz93Iob9qakitjc4gayxLbRMVzLEC87KstfwRV3ji9l9hbAd4YxfYUvGc4ltVfQ0a8qBbN0BDxYuQGmLGE6wr1UT%2F3HnDvqW%2BztbMixa3Rr95p8f3A19rP9hrv0iT%2FV64XWJUhxlDc2prl6ZhNLTUkWHCDoBPYZiOwjCdmDvLMHqpGajz%2FyUfat9zX3or3OcdqxGTcbY9yz5NxP95K88pLGG3mTddloJuULf012mUke%2FzICfKVyZR692iuSN04FQdwHDIk52qaam8qq3LrZbRHQVs%2FJUoceMnbguZwmEznflKhg3ZTDwZ%2Fxr0%2F12Bq2hyB16ytGqrf9pLMJUV7GZEWw%2FsG3%2FUNBSxtKHeIoZwpBexd4eDmoJBimBUqcfUCqzeSVG3oslp6Zyci9JMcPTa1jdhEzRktnNNXXkPUxX56ISHLCMnorsrESHHBzERp2VMRB8RyUGRfUREWb2DhnWbQHHBROW0hrfHwzeTx7k6u7nLjxzc2VFDQ7o7uxxruaLeFnXb97tBXWpIN%2Bp4J8VfRwgrIPQvaISgGth9YK3YHE0TdtyoDMuKF0Mldkdi0T%2BzVnR3Esl1zNqRVEQuiP%2B7Zx%2BzqmYAukAd5wOEXq%2FH%2FkXO1QI2rsgCIvHcgwXsyY6nMUfmDVkx9ckgt2E2aBsnr4XJN25thyc7NNtFJWdVU%2Fh1f8dbHi3Tl9xgzG4DJaWsbPSHeEeo5DCvdmgwHAMmM2F2FqjvlolyR9b3ThBrL195hQuf5LnqBkEbLOZFnt44WnG7aKFwQb6IExjGeCy%2BWSkf539U5mm5htHvl9cSt1oGI9%2BW7gFQbumuTDj07c5fqWbquhjuDH97eGQn%2Bw%2BPj7vGOacdVXVxteWcMwjlTrqH%2Fv7j3Q7grIsbv6HDYv1HBFsq%2FgiEXpTppWi%2FIz0%2BQtPaV51v%2FFW3Du%2FI8RdsR1eCg3QdfALXhi7MXBt030c2Vw%2F6VHykvQJW1JX3AK%2FjncJeVTMYHU5c3bK%2F2Pjy832PR3Vk%2BLoeYCf33ANUJM9rPKV0kgazWZ72iYxBnz8ifWXvl6G2nM%2FjtQYEc4nVGX5dZZRKbKJAC8toQSfZHVryfEQOT0yDcCGhon0wNTYCywjkwRQY0VfO3A%2Fc4oz2wZTltOtZ%2BkZTSBXz%2FbQqFl%2BSLMDOkaoAqEvTAbdysCroeqIBHZZ0%2FsG16EUZnemCJo7Vosi8OKuTA0fFxFTunb5FIy4pWAuXr%2Fw6Ug62bffq6COskHr%2BKaVe2TAQD8McoxFN8gdOPw9GyLLrTsFSyDvVgiF9CMlxrxyhu0%2BKkANWdF0AQoelgR28pmtP4pe5d2lL45xdXbmHAfHGI5VCd0YeeR4f5IcvfDGMWWqi0orggr%2FWi7RAMopjuW%2F0wy1v2N8%2FnefDNTr1%2BnqCSJY8FP1SBnwWy%2BdNSKgSBKoU%2F%2FJ5SMwHYJacdj4O05cddyiHvYnCMPFCW0VhHnq2nOoS2e2y2Oaku%2Fa015x1579LfnRgbtyx%2FOiWhtX1Ita6KnDsBnoEwydQXxM9yjH2h3x7CRqvfyo03OVNC8MVmcp5YaQwS33zwpYcUTvA53wel2NjYPGGIhh6Wp%2BjeS%2BEA3yO%2Bxanw5OEPGUW23D4gH2%2F4nQO2ZehQ6djo3fhdBwwE%2BYduzDIA%2BLXhexz9uCYJQfHfrmylkIog%2Bxd7LgSa3mnJK3Sks5FWsdzT13wGifjnrMuFXGg0zuSUUA7UrigIxUrXQYBg9WgSm05wHgXfaKAIlhO6Cgk7WkZBjUzzPalmF2MDHSktcAAlKtKlFANFbRtXGefOU77llgF6j5YcS5Kxqbfs0B0AeqzA9YCw7Yk0dgRNfPb9tSX0kvPLbYWeAd0AHf4cA2rpwh6qgjBtXQRghyu%2FkayIJaXDEzXYRqFRINTvMgcN9vHYKbaVez145wyy832Za4%2B4cbSBwSL96yEE5k1zRs7qHS8wqO0pfoWMr0MozWHCFy16Zxm02gsD7%2Bu42aV%2BrJA%2F0Uy2ap8vL5Fry3EV4duDKlR22wjXbbQarWfbaEBdrsKw%2BIeAlsGq7Z0tu2eq%2BBX29cGkOwMHxKSTta7F9B1szBvMQ%2BSsmyR0ZT%2FfkKl91bOtlxN92E7NXZc6JbbThxjbWbTYuI4muW%2FiVFFRBQNotmEXTaOGEUPR3E0%2FxGkzFSGE8JMjwux4VO8nPwwkbdif3vzZKLqxDINqDpvK4KoSN%2BulK8HphoVO1Cr4gvalBSWQ89XxPYi5p8ZMUcWPRJitV0R9kYx2sQt2u3EcNINJrT9WErpjZv3ffDVVnOqzHGwzODYbcUxsG5TVywbTDgjt2EDCpApYjZkuEn10QmiMY4cLO9mmWSezlvkw0O59VFXUHYVaEb1KUKn5SIvfXSNJBtRLZ8sflmGJtHoplispwHBi4wuYRBGVS%2FL6ya4xA63P4hWkMD2Z%2BWsh38A"></iframe>
 """
@@ -116,51 +301,6 @@ html"""
 # ╔═╡ dfb56aac-626b-4655-9321-99ab2fc74cfe
 md"""
 Fig.1: Workbench scheme. **Note:** In practise the equipment not allow a water closed circuit and O₂ storage.
-"""
-
-# ╔═╡ 9c694aa7-2970-4de2-ada8-7ac34b4f37a2
-
-
-# ╔═╡ 2b376666-65bc-47f7-90a7-35decb87078a
-md"""
-# Fuel cell U-I curve (lab test)
-"""
-
-# ╔═╡ bbeb147a-2cb2-4177-958f-4d6b171cbb28
-md"""
-## Measured values
-"""
-
-# ╔═╡ e85d6f57-1d76-475f-ade0-fe85a82bc5ca
-U = [43.0; 41.0; 39.9; 38.9; 38.0; 37.2; 36.4; 35.7; 35.4; 35.0; 34.7; 34.4; 34.0; 33.7];
-
-# ╔═╡ 0314ef45-6b1c-4738-aad1-e26e3cdfaa66
-I = [0.9; 1.7; 2.5; 3.2; 4.0; 4.6; 5.2; 5.9; 6.6; 7.3; 8.0; 8.6; 9.3; 10.0];
-
-# ╔═╡ dde18063-a566-4ba5-a918-5242eac54430
-P=U.*I
-
-# ╔═╡ a9694e3c-b208-4021-908e-f79ac3fd813a
-md"""
-## Results
-"""
-
-# ╔═╡ 56bf6aa7-37e3-4ef8-afd7-c282289a8852
-begin
-	scatter(I, U, 
-		ylabel="Voltage (V)", xlabel="Current (A)",
-		ylims=(0,50), xlim=(0,12), label=:none)
-	plot!(I, U, lc=:blue, lw=2, label="U(I)", legend=:topleft)
-	
-	scatter!(twinx(), I, P, xlim=(0,12), ylims=(0,400), mc=:green, 
-		label=:none, ylabel="Power (W)")
-	plot!(twinx(), I, P, xlim=(0,12), ylims=(0,400), 
-		lc=:green, lw=2, label="P(I)", legend=:topright)
-end
-
-# ╔═╡ 73cdec6e-71cb-4c5a-9b2f-cee0f90a4812
-md"""
-Fig.2: Fuel cell load test results.
 """
 
 # ╔═╡ 5c4efd0e-3db4-419e-b125-fa7a0645cef2
@@ -340,231 +480,242 @@ Main specs:
 # ╔═╡ d861716d-b0c4-40f9-9fa2-5c8539480a18
 
 
-# ╔═╡ 9d28361c-d3b4-44af-9a9c-d13d4f911f1f
-
-
-# ╔═╡ f8c559c3-8064-4f3c-a767-510eebc96d85
-
-
-# ╔═╡ 88dfac9b-737d-4057-a1ea-db6ad61e22ef
+# ╔═╡ 47a54e32-64a5-490c-a961-8a8337559084
 md"""
-# Study
+# LAB WORK
 """
 
-# ╔═╡ 5a17bbf9-514f-4b2e-b8db-144c66f4af07
+# ╔═╡ 5abbfab0-7258-49b5-9fac-875d41e638f8
 md"""
-## Photovoltaic Conversion of Solar Energy
+## Electrolizer curve
 """
 
-# ╔═╡ 18f78524-7836-4719-9c39-6999a3789125
-DOI("10.3390/su7032644")
-
-# ╔═╡ 0d674fc4-d0a8-45a5-9c38-efd6e340fc54
+# ╔═╡ 2dec4c15-aadf-47bd-90df-3cb2ca47a3e4
 md"""
-[mit-c25.netlify.app/notebooks/10\_climate\_science.html](https://mit-c25.netlify.app/notebooks/10_climate_science.html)
+H2 produced (scm):
 """
 
-# ╔═╡ 1bda23b8-b8c0-4ad2-83c8-1b322cf4a119
+# ╔═╡ 92484dba-ce1f-4ecd-af10-7cc69ca8de55
+H₂ = [0; 0.01; 0.02; 0.03; 0.04; 0.05; 0.06; 0.07; 0.08; 0.09; 0.10; 0.11]
+
+# ╔═╡ 9691e7ff-5315-4069-a054-a6a6e6f59e7a
 md"""
-[Global Solar Atlas](https://globalsolaratlas.info/map?s=38.757296,-9.117966&m=site&c=38.703463,-9.148178,11)
+Elapsed time of H2 production (s):
 """
 
-# ╔═╡ a0cf81c4-a54e-4ee8-8813-3c1e989335cb
+# ╔═╡ cf2d1f51-6a81-48d8-9381-db126a50db82
+time_H₂ = [0.0; 16*60+27; 32*60+04; 48*60+30; 64*60+59; 3600+21*60+25; 3600+37*60+54; 3600+54*60+22; 3600*2+10*60+04; 3600*2+26*60+33; 3600*2+43*60+0; 3600*2+59*60+29] # elapsed time, seconds
 
+# ╔═╡ eebc45e9-1bd8-4643-bc27-ff4d1baff6f2
+t_diff = diff(time_H₂) # time between consecutive measurements, seconds
 
-# ╔═╡ f9e7768e-28a0-4c3a-b3df-5930a0ae097b
+# ╔═╡ 7291ba85-af21-4304-b827-ce143f0cef2d
 md"""
-The model of extraterrestrial solar radiation, $G_0$, for a certain location could be expressed by
-the relation:
-
-$$G_0=\frac{24}{\pi} S \left[ 1+0.33
-\cos\left(\frac{2\pi n}{365}\right) \right](\cos \phi \cos \delta \sin \omega + \omega \sin \phi \sin \delta) \quad\quad [\rm W/m^2]$$
-
-where:
--  $S$ is the solar constant;
--  $n$ is the days’ number of the year;
--  $\phi$ is the latitude of the considered location;
--  $\delta$ represents the declination of the Earth;
--  $\omega$ is the solar horary angle.
+DC voltage of electrolizer stack (V):
 """
 
-# ╔═╡ c37c265d-57f9-41ec-9a85-f2cb90856cbf
-S = 1361 # W/m²
+# ╔═╡ 04812d9e-ad02-4a98-b2ab-b59d24f1cd42
+U_H₂ = [4.93; 4.88; 4.84; 4.82; 4.80; 4.80; 4.79; 4.78; 4.78; 4.78; 4.77; 4.77] # DC volt, V
 
-# ╔═╡ 00ce55cc-27fa-4540-9983-e1d696bad2d1
-ϕ = 44.3  # in degrees, example of Craiova, Romania
+# ╔═╡ 64b1c646-1593-448a-8220-bb4772be9ccd
+md"""
+DC current of electrolizer stack (A):
+"""
 
-# ╔═╡ bfe09a62-2369-4f10-8898-1adfb46b275e
-δ = 23.4  # in degrees
+# ╔═╡ 87bf639d-5a8d-421a-b66f-d8a988e6dfc2
+I_H₂ = [37.8; 38.0; 37.8; 38.0; 38.1; 37.6; 37.8; 37.6; 37.6; 37.8; 37.6; 38.0] # DC current, I
 
-# ╔═╡ 12345a52-fde5-41eb-ac49-21eb5ac2ee16
+# ╔═╡ da725eb6-5f2e-48f3-bd33-b8d8b99938ef
+md"""
+DC Power of electrolizer stack (W):
+"""
 
-
-# ╔═╡ 3bad4c86-867d-4e9c-99c5-9b316542a765
+# ╔═╡ cef1de4b-fae3-4e22-8b1e-966dc95679c2
 begin
-	h = today()
-	n = Dates.dayofyear(h)
-	h, n
+	P_H₂ = U_H₂ .* I_H₂
+	P_H₂ = round.(P_H₂; digits=1)
+	median(P_H₂)	
 end
 
-# ╔═╡ 1d3f9163-d52f-4f50-baf3-a24d327e7f7c
+# ╔═╡ b595c94b-86ba-47b9-b1d7-90a8ff5ec3a8
+P_H₂
 
-
-# ╔═╡ c666b7b1-d810-43b3-85ee-77517f6ca409
+# ╔═╡ 6f248da1-6402-49df-865e-f21b34c22384
 md"""
-One hour the sun travels in the sky an angle equal to 15°, and its position at any
-time $T$ (hours) can be expressed by the relationship below:
-
-$$\omega=15(12-T)$$
-
+Consumed energy of eletroliser, MJ <> MWs
 """
 
-# ╔═╡ 92a0edf6-8f8b-4daf-a3a3-135ff12fd492
+# ╔═╡ 55540e29-fc35-427a-b5ec-e6999d5afe53
+E_H₂ = P_H₂ .* time_H₂ ./ 1e6 		# Consumed energy of eletroliser, MJ <> MWs
+
+# ╔═╡ 7d677c32-e403-4edb-8483-5c402a8e1d79
 md"""
-Horary angles of sunrise and sunset $$(\alpha_s=0)$$, with $$\alpha_s$$  as the sun elevation angle.
-
-$$\omega_s=\pm \cos^{-1}(-\tan \phi \:\tan \delta)$$
-
+!!! note
+	A 100%-efficient electrolyser would consume 39.4 kilowatt-hours per kilogram (142 MJ/kg) (higher heating value) of hydrogen, 12.749 Joules per litre (12.75 MJ/m3).
 """
 
-# ╔═╡ 3f88433b-6256-428d-983b-e6fc6128efb5
-ωₛ = acos(-tand(ϕ)*tand(δ))*180/π  # in degrees
-
-# ╔═╡ 5ad49800-5dc0-4642-b374-afccb139cf83
+# ╔═╡ 8c3173fb-c081-4e77-b6ee-f049f5aca096
 md"""
-[Solar irradiance - Wikipedia](https://en.wikipedia.org/wiki/Solar_irradiance)
-
-[Applied Sciences | Free Full-Text | M-Shape PV Arrangement for Improving Solar Power Generation Efficiency](https://www.mdpi.com/2076-3417/10/2/537)
+Energy per standard cubic meter, MWs/scm:
 """
 
-# ╔═╡ d572be50-93f1-4574-9afe-4320dfe517e2
+# ╔═╡ beb665a0-a35a-471e-9d98-d1361d7d422d
+E_H₂_scm = E_H₂ ./ H₂   # Energy per standard cubic meter, MWs/scm
 
-
-# ╔═╡ 191009da-e7c3-484e-b15c-755012216902
+# ╔═╡ a0e1330c-797a-4857-9d61-db654e7a35ee
 md"""
-## Jump
+### Electrolizer efficiency (%):
 """
 
-# ╔═╡ 75e0a7e1-fa8b-4368-bfbd-5cd42bbb90ef
+# ╔═╡ 24d94440-fabd-46df-b370-238001824180
+begin
+	Eff_H₂ = 12.7749 * 100 ./ E_H₂_scm
+	Eff_H₂ᵃᵛᵍ = median(Eff_H₂[2:12])
+	Eff_H₂ = round.(Eff_H₂; digits=1)
+	Eff_H₂, round(Eff_H₂ᵃᵛᵍ, digits=1)
+end
+
+# ╔═╡ 6e63587b-bb79-460f-8928-49804a4ffca6
+begin
+	scatter(time_H₂ ./60 , H₂, label=:none, mc=:green)
+	plot!(time_H₂ ./60 , H₂, xlabel="time (min)", ylabel="H₂ (scm)", lc=:green, lw=2, label="H2 production")
+	scatter!(twinx(), time_H₂ ./60 , P_H₂, ylim=[0, 500], label=:none)
+	plot!(twinx(), time_H₂ ./60 , P_H₂, ylim=[0, 500], lw=2, ylabel= "P_H₂ (W)", label="H2O electrolyzer stack consumption", legend=:bottomright)
+end
+
+# ╔═╡ 5963957e-32ef-440c-bf49-3bca94345871
+
+
+# ╔═╡ 226963fc-8853-4d0c-9af9-ea0d6f5b7f2a
 md"""
-Julia book for Jump:
-- [Julia Programming for Operations Research, 2nd Ed.](https://www.chkwon.net/julia/)
+### Other calcs related to DC-AC-DC conversions:
 """
 
-# ╔═╡ 8328d2d8-9ad5-4cf9-8006-30bf8b192e3e
+# ╔═╡ 5a5d5447-da04-4e10-ba62-a139de826525
 md"""
-[JuMPTutorials.jl · GitHub](https://github.com/jump-dev/JuMPTutorials.jl/blob/master/notebook/introduction/getting_started_with_JuMP.ipynb)
+Input AC power of eletrolizer (W):
 """
 
-# ╔═╡ 9477af88-edf1-4403-be5d-0fabc7e68c5a
+# ╔═╡ 09525d14-14d9-41a3-a193-e7df3df8eb09
+Pᵢₙ_H₂ = [338.0; 298.6; 337.0; 296.3; 295.3; 297.5; 297.0; 293.3; 335.0; 295; 295.8; 334.3]
+
+# ╔═╡ 16e8e2b1-4fd1-49d6-ae28-3fe25e74dd82
 md"""
-[(1520) Tutoriais de Julia em Português - JuMP.jl parte 5 - Não linear inteira mista - YouTube](https://www.youtube.com/watch?v=wCKodtczy1I)
+Input power of the inverter (W):
 """
 
-# ╔═╡ 943e4e34-0e34-431b-8d5b-e6982af15e73
+# ╔═╡ ff958c84-7268-43d8-810a-ac49babd5fed
+Pᵢₙ_INV = [374.4; 332.6; 370.6; 328.2; 329.5; 328.8; 329.7; 326.6; 370.2; 328.8; 330.3; 370.7]
+
+# ╔═╡ d8596323-d680-48ea-9f98-6eb0a3c9228c
 md"""
-[gdalle/ImplicitDifferentiation.jl: Automatic differentiation of implicit functions](https://github.com/gdalle/ImplicitDifferentiation.jl)
-  - [gdalle.github.io/ImplicitDifferentiation-JuliaCon2022/](https://gdalle.github.io/ImplicitDifferentiation-JuliaCon2022/)
+Inverter efficiency (%):
 """
 
-# ╔═╡ 768c1823-5659-40ca-9f38-afa2cdeea85a
+# ╔═╡ ac940486-3cb0-4869-9784-e14a87f4068a
+begin
+	ηᴵᴺⱽ = Pᵢₙ_H₂*100 ./ Pᵢₙ_INV 	# efficiency, %
+	ηᴵᴺⱽ = round.(ηᴵᴺⱽ, digits=1)
+end
+
+# ╔═╡ d89d82d0-ac95-4ff8-aacc-72bd39abd175
 md"""
-## Software
+Electrolizer AC-to-DC power conversion efficiency (%):
 """
 
-# ╔═╡ 2878a88c-f60f-47dd-8814-dd17ea172ea6
+# ╔═╡ 041a455d-6d06-4129-b83a-2913060c0f43
+begin
+	η_H₂ᶜᵒⁿᵛ = P_H₂.*100 ./ Pᵢₙ_H₂ 	# efficiency, %
+	η_H₂ᶜᵒⁿᵛ = round.(η_H₂ᶜᵒⁿᵛ; digits=1)
+end
+
+# ╔═╡ 645096a5-8b69-4a8c-a0e3-f1b33d1be51b
 md"""
-
-- [Open energy system models - Wikipedia](https://en.wikipedia.org/wiki/Open_energy_system_models#AnyMOD.jl)
-- [Open Models - wiki.openmod-initiative.org](https://wiki.openmod-initiative.org/wiki/Open_Models)
-- [Energy Models](https://energymodels.de/)
-
-
-- [GAMS-dev/gams.jl: A MathOptInterface Optimizer to solve JuMP models using GAMS](https://github.com/GAMS-dev/gams.jl)
-- [Breakthrough-Energy/REISE.jl: Renewable Energy Integration Simulation Engine](https://github.com/Breakthrough-Energy/REISE.jl)
-  - [Facilitating the Energy Transition — documentation](https://breakthrough-energy.github.io/docs/)
-- [YoungFaithful/CapacityExpansion.jl: Capacity Expansion Problem Formulation for Julia](https://github.com/YoungFaithful/CapacityExpansion.jl/tree/master)
-  - [Homework: Modeling Exercise · CapacityExpansion.jl](https://youngfaithful.github.io/CapacityExpansion.jl/stable/homework/)
-- [leonardgoeke/AnyMOD.jl: Julia framework for energy system models with a focus on multi-period capacity expansion](https://github.com/leonardgoeke/AnyMOD.jl)
-  - [Open source tool AnyMOD.jl for energy system modelling released! - Osmose](https://www.osmose-h2020.eu/open-source-tool-anymod-jl-for-energy-system-modelling-released/)
-  - [[2011.00895] AnyMOD.jl: A Julia package for creating energy system models](https://arxiv.org/abs/2011.00895)
-  - [AnyMOD.jl: A Julia package for creating energy system models :: JuliaCon 2021 (times are UTC) :: pretalx](https://pretalx.com/juliacon2021/talk/EUVCJY/)
-- [(1523) Power Market Tool (POMATO) | Richard Weinhold | JuliaCon2021 - YouTube](https://www.youtube.com/watch?v=n0wmYTm6Y64)
-- [Stephan Buchert / Sun position · GitLab](https://gitlab.com/stephancb/sun-position)
-  - [Introduction · PowerModelsONM](https://lanl-ansi.github.io/PowerModelsONM.jl/stable/)
-  - [Beginners Guide · PowerModelsONM](https://lanl-ansi.github.io/PowerModelsONM.jl/stable/tutorials/Beginners%20Guide.html#Installing-and-running-Pluto.jl)
-
-\
-PV:
-
-- [CliMA/Insolation.jl](https://github.com/CliMA/Insolation.jl)
-  - [Home · Insolation.jl](https://clima.github.io/Insolation.jl/dev/)
-
-
-[Stephan Buchert / Sun position · GitLab](https://gitlab.com/stephancb/sun-position)
-
-[Drawing the analemma with Julia](https://giordano.github.io/blog/2017-11-12-analemma/)
-
-
-
-
+Efficiency including inverter (%):
 """
 
-# ╔═╡ 20c7819f-6d17-45b5-b317-b91ed5dc7715
+# ╔═╡ 5ba29d1f-6a62-4d26-9436-074625ac7323
+begin
+	η_μDC_H₂ = ηᴵᴺⱽ .* η_H₂ᶜᵒⁿᵛ /100
+	η_μDC_H₂ = round.(η_μDC_H₂; digits=1)
+end
+
+# ╔═╡ 0c6e0052-fd18-4f46-a128-1f5148eedee7
 
 
-# ╔═╡ 14256fdb-3da3-41b9-ad4f-17a51df2934c
+# ╔═╡ 8fe2b0b1-e314-4a10-982b-2dcc53350b7a
 
 
-# ╔═╡ 985d7745-19b2-4e39-84eb-9b12982d42a4
-
-
-# ╔═╡ 0ccaefcd-fa8c-40c5-9dea-0600d4901add
-
-
-# ╔═╡ 7f94c1eb-b316-4726-a84a-7c7b0e814b29
+# ╔═╡ 2b376666-65bc-47f7-90a7-35decb87078a
 md"""
-## Data
+## Fuel cell U-I curve
 """
 
-# ╔═╡ 8011d698-a78a-4371-bc57-49acc2bdd3b2
+# ╔═╡ bbeb147a-2cb2-4177-958f-4d6b171cbb28
 md"""
-[JRC Photovoltaic Geographical Information System (PVGIS) - European Commission](https://re.jrc.ec.europa.eu/pvg_tools/en/)
-- [PVGIS user manual](https://joint-research-centre.ec.europa.eu/pvgis-online-tool/getting-started-pvgis/pvgis-user-manual_en#ref-9-hourly-solar-radiation-and-pv-data)
-
-\
-Load, wind and solar, prices in hourly resolution:
-- [Data Platform – Open Power System Data](https://data.open-power-system-data.org/time_series/2020-10-06)
-
-\
-[Global Solar Atlas, Portugal](https://globalsolaratlas.info/download/portugal)
-
-[Data and Tools | Photovoltaic Research | NREL](https://www.nrel.gov/pv/data-tools.html)
-
-
+### Measured values
 """
 
-# ╔═╡ 86af3f0d-5ca1-408c-9a17-e041d415ca21
+# ╔═╡ e85d6f57-1d76-475f-ade0-fe85a82bc5ca
+U = [43.0; 41.0; 39.9; 38.9; 38.0; 37.2; 36.4; 35.7; 35.4; 35.0; 34.7; 34.4; 34.0; 33.7];
 
+# ╔═╡ 0314ef45-6b1c-4738-aad1-e26e3cdfaa66
+I = [0.9; 1.7; 2.5; 3.2; 4.0; 4.6; 5.2; 5.9; 6.6; 7.3; 8.0; 8.6; 9.3; 10.0];
 
-# ╔═╡ b278cb84-febd-4e95-9f02-e2febc08e477
+# ╔═╡ dde18063-a566-4ba5-a918-5242eac54430
+P=U.*I
 
+# ╔═╡ a33bfab8-de02-453b-823b-260838e3c924
+begin
+	h1=scatter(time_H₂ ./60 , H₂, label=:none, mc=:green)
+	plot!(time_H₂ ./60 , H₂, xlabel="time (min)", ylabel="H₂ (scm)", lc=:green, lw=2, label="H2 production")
+	scatter!(twinx(), time_H₂ ./60 , P_H₂, ylim=[0, 500], label=:none)
+	plot!(twinx(), time_H₂ ./60 , P_H₂, ylim=[0, 500], lw=2, ylabel= "P_H₂ (W)", label="H2O electrolyzer stack consumption", legend=:bottomright, size=(460,360))	
 
-# ╔═╡ 494c685d-d18e-43fb-adcc-8b8907fcf229
+	h2= scatter(I, U, 
+		ylabel="Voltage (V)", xlabel="Current (A)",
+		ylims=(0,50), xlim=(0,12), label=:none)
+	plot!(I, U, lc=:blue, lw=2, label="U(I)", legend=:topleft)
+	
+	scatter!(twinx(), I, P, xlim=(0,12), ylims=(0,400), mc=:green, 
+		label=:none, ylabel="Power (W)")
+	plot!(twinx(), I, P, xlim=(0,12), ylims=(0,400), 
+		lc=:green, lw=2, label="P(I)", legend=:topright, size=(460,360))
 
+	#plot(h1, h2, layout = (1, 2), size=(800,400))
+	plot(h1, h2, layout = (1, 2))
+end;
+
+# ╔═╡ 585dbd3f-ab23-4d27-a647-012ce01a8152
+TwoColumn(plot(h1), plot(h2))
+
+# ╔═╡ a9694e3c-b208-4021-908e-f79ac3fd813a
+md"""
+### Results
+"""
+
+# ╔═╡ 56bf6aa7-37e3-4ef8-afd7-c282289a8852
+begin
+	scatter(I, U, 
+		ylabel="Voltage (V)", xlabel="Current (A)",
+		ylims=(0,50), xlim=(0,12), label=:none)
+	plot!(I, U, lc=:blue, lw=2, label="U(I)", legend=:topleft)
+	
+	scatter!(twinx(), I, P, xlim=(0,12), ylims=(0,400), mc=:green, 
+		label=:none, ylabel="Power (W)")
+	plot!(twinx(), I, P, xlim=(0,12), ylims=(0,400), 
+		lc=:green, lw=2, label="P(I)", legend=:topright)
+end
+
+# ╔═╡ 73cdec6e-71cb-4c5a-9b2f-cee0f90a4812
+md"""
+Fig.2: Fuel cell load test results.
+"""
 
 # ╔═╡ 166429fb-6148-414d-b717-2a32c610c321
 md"""
-# Tests
+# Sankey diagram
 """
-
-# ╔═╡ cd353619-814e-4114-a0eb-ad77896b418a
-md"""
-end-use sectors: residential, commercial, industrial, transportation
-"""
-
-# ╔═╡ d5463e21-2f9d-4469-b51e-e349e4949f30
-12+16+36+30
 
 # ╔═╡ f0d2d1e1-279d-4fa7-9005-8d404724663c
 #begin
@@ -607,7 +758,7 @@ begin
 	dst = [13,5,8,7,6,13,5,7,7,6,11,13,5,8,7,6,13,5,8,7,6,11,12,10,9,11,12,10,9,11,12,10,9,11,12,11]
 	weights = [15,4,0.1,0.3,0.6,22,6,0.2,0.8,1,30,14,1,2,3,10,37,10,0.2,0.6,1.2,32,28,17,11,9,7,3,2,1.2,0.8,0.3,0.2,0.7,4,12.8]
 	size.([src, dst, weights])
-end
+end;
 
 # ╔═╡ d998e69b-852c-4a02-ae4f-2f4444fafbfd
 md"""
@@ -618,14 +769,17 @@ ver por causa do power-to-heat: [What is Power-to-X?](https://www.turbomachinery
 #sankey(src, dst, weights; max_plot_size = 800)
 
 # ╔═╡ 021628d0-a170-4e9c-8079-f50722bb03b9
-energy_colors = palette(:seaborn_colorblind)[[9,10,6,3]]
+energy_colors = palette(:seaborn_colorblind)[[9,10,6,3]];
+
+# ╔═╡ 4bf41846-4b76-4529-a531-61dd423cc372
+sankey(src, dst, weights; node_labels=nameH2, label_position=:left, edge_color=:gradient, compact=:true, node_colors=energy_colors, size=(850,450))
 
 # ╔═╡ bdfbb0ea-1f67-44fa-b74d-051c2aadee31
 #sankey(src, dst, weights; max_plot_size = 800)
 sankey(src, dst, weights; node_labels=nameH2, label_position=:bottom, edge_color=:gradient, compact=:true, node_colors=energy_colors,)
 
 # ╔═╡ 85a0eb7e-3f79-46ee-a6fe-935e7ab7f331
-palette(:seaborn_colorblind)
+palette(:seaborn_colorblind);
 
 # ╔═╡ adbe0aea-37b2-4208-8a49-829408a286f2
 names = [
@@ -639,56 +793,8 @@ names = [
     "Heat demand", "9"
 ]
 
-# ╔═╡ cf23420f-30e9-432f-8ef9-3fbd6498594d
-# ╠═╡ disabled = true
-#=╠═╡
-sankey(src, dst, weights; node_labels=names, node_colors=energy_colors,
-    edge_color=:gradient, label_position=:bottom, label_size=7,
-    compact=true,
-    #force_layer=[6=>2],
-    #force_order=[5=>1],
-	#figsize=(7, 7)
-)
-  ╠═╡ =#
-
-# ╔═╡ 2776bc41-7d1d-4876-b281-e93ccba93733
-
-
-# ╔═╡ e42d7c0c-559e-4507-be56-c87414749d19
-t = Date(2023, 4, 27)
-
-# ╔═╡ 0c69c9d1-4182-4e69-a1cc-14edd386ec24
-ty = Dates.dayofyear(t)
-
 # ╔═╡ 01d9a20d-5b08-47ff-b96d-3e8582d2cff5
 
-
-# ╔═╡ e969a627-d5bd-4595-a92c-2b855a2afd02
-
-
-# ╔═╡ d1a72462-9716-420a-ba54-dddb1c2fc562
-md"""
-# Notas (reunião TFM com Derik e Prof. P.Fonte):
-
-## 17-Abril-2023:
--  utilizar vídeo para gravar os dados do PC... + go-pro para eletrolisador?
-"""
-
-# ╔═╡ 4cb19857-6643-4236-82f5-6f612e57c393
-
-
-# ╔═╡ 5bc5e16f-36d1-4c78-a493-ac3013eb2891
-md"""
-# TODO
-"""
-
-# ╔═╡ 7ec19209-4590-466f-90f9-bf5a1b96e94e
-md"""
-
- $(@bind thing1 CheckBox()) review this tool: [^H2RES2], MATLAB\Simulink \
- $(@bind thing2 CheckBox()) ... \
-
-"""
 
 # ╔═╡ b598e525-81a5-4451-a891-6e3cea23762f
 
@@ -703,51 +809,63 @@ md"""
 [^Sevjidsuren2012]: 
 $(DOI("10.5772/50602")) 
 
-\
+
 
 [^H2RES2]: 
 $(DOI("10.1016/j.ijhydene.2017.02.139"))
+
+
+\
+**PAPER to EEIC'23:**
+
+- ASHRAE, (2013). ANSI/ASHRAE Standard 55-2013, ASHRAE, Atlanta. 
+
+- DOI("0.1016/j.enbuild.2017.09.043"))
+
+- $(DOI("10.1016/j.ijhydene.2021.12.018"))
+
+- Projeto de sistemas de ventilação e ar condicionado energeticamente eficientes / REHVA : ed. Nejc Brelih ; rev. Comissão Executiva da Especialização em Engenharia de Climatização ; trad. Ana Ramos ; [ed. lit.] Ordem dos Engenheiros. - Lisboa : Ingenium Edições, 2013. - XI, 106, [9] p. a 2 colns : il. ; 24 cm. - (Manual REHVA ; 17)(Engenharia ; 25). - Bibliografia, p. 101-103. - [ISBN 978-989-8149-11-4](http://id.bnportugal.gov.pt/bib/bibnacional/1863769)
+
+- $(DOI("10.1109/ICCEP.2017.8004724"))
+
+- $(DOI("10.1016/j.ijepes.2018.06.057"))
+
+- DGEG - Direcção Geral de Energia e Geologia (2020). Caracterização Energética Nacional
+
+- European Comission, (2013). Relatório da Comissão ao Parlamento Europeu e ao Conselho - Progressos dos Estados-Membros na via para edifícios com necessidades quase nulas de energia. Relatório COM (2013) 483 final/2 
+
+- Friedrich-Wilhelm, S., Birke, K. P.(2019). Power-to-X Conversion Technologies. In  Kai Peter Birke (Editor). Modern battery engineering: a comprehensive introduction (pp.239-262). World Scientific. ISBN: 9789813272156
+
+- $(DOI("10.1016/j.enbuild.2014.09.055"))
+
+- IEA – International Energy Agency (2008). Energy Efficiency Requirements in Building Codes, Energy Efficiency Policies for New Buildings. OECD/IEA 
+
+- $(DOI("10.1016/j.egypro.2013.08.007"))
+
+- $(DOI("10.1109/ACCESS.2017.2705914"))
+
+- $(DOI("10.1039/c4ee03051f"))
+
+- $(DOI("10.1016/j.apenergy.2016.01.070"))
 """
 
 # ╔═╡ 8f253d91-337f-4b8e-8664-bc76af44ed40
 
 
-# ╔═╡ deb0ddc7-3e9f-44e7-9d23-cd1f2125c960
-md"""
-## Read later
-"""
-
-# ╔═╡ 3d1e656a-502b-43d9-a0e5-ebae49794e34
-md"""
-- [Breakthrough in hydrogen fuel production could revolutionize alternative energy market | VTx | Virginia Tech](https://vtx.vt.edu/articles/2013/04/040413-cals-hydrogen.html)[Breakthrough in hydrogen fuel production could revolutionize alternative energy market | VTx | Virginia Tech](https://vtx.vt.edu/articles/2013/04/040413-cals-hydrogen.html)
-
-
-- [Hydrogen for ground transportation and heating is a bad idea | ETH Zurich](https://ethz.ch/en/news-and-events/eth-news/news/2021/11/hydrogen-for-ground-transportation-and-heating-is-a-bad-idea.html)
-
-
-- [Hydrogen for light road transport: It's got a long way to go on costs](https://thedriven.io/2019/03/27/hydrogen-for-light-road-its-got-a-long-way-to-go-on-costs/)
-
-
-- [The ANZ Hydrogen Handbook - AH2 anz.com](https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.anz.com%2Fcontent%2Fdam%2Fanzcom%2Fpdf%2Finstitutional%2Freports%2Fhydrogen-handbook.pdf&psig=AOvVaw1JEr6R4nilFzYX2jBa1zct&ust=1668076001177000&source=images&cd=vfe&ved=0CHoQr4kDahcKEwiYjJa98aD7AhUAAAAAHQAAAAAQCQ)
-
-
-- [Why EV Fans should Rethink Hydrogen Cars | by Erik Engheim | Medium](https://erik-engheim.medium.com/why-ev-fans-should-rethink-hydrogen-cars-6d5781a24a14)
-
-
-- [Why We Need Green Hydrogen](https://news.climate.columbia.edu/2021/01/07/need-green-hydrogen/)
-
-
-- [The Northeast is poised to become a ‘hydrogen hub’ | Grist](https://grist.org/energy/the-northeast-is-poised-to-become-a-hydrogen-hub/)
-
-
-"""
-
-# ╔═╡ ddeaf1bf-afae-4663-b69e-da5634c54c2b
-
-
 # ╔═╡ 1835dbf4-7c67-456e-b994-a2426184d08f
 md"""
-# Notebook
+# Packages
+"""
+
+# ╔═╡ 5be1de25-7c76-41e9-a37e-eff362e9a3b6
+md"""
+Used `Julia` packages: 
+- [**PlutoTeachingTools.jl**: Functions useful when using Pluto in teaching.](https://github.com/JuliaPluto/PlutoTeachingTools.jl)
+- [**Shortcodes.jl**: Simple embedding for Pluto notebooks](https://raw.githack.com/hellemo/ShortCodes.jl/main/examples/static-demo.html)
+- [**PlutoUI.jl**: Pluto notebooks can use @bind to add interactivity to your notebook](https://featured.plutojl.org/basic/plutoui.jl)
+- [**Plots.jl**: powerful convenience for visualization in Julia](https://docs.juliaplots.org/stable/)
+- [**Statistics.jl**: The Statistics standard library module contains basic statistics functionality](https://docs.julialang.org/en/v1/stdlib/Statistics/)
+- [**SankeyPlots.jl**: A Sankey Diagram recipe for Plots.jl](https://github.com/daschw/SankeyPlots.jl)
 """
 
 # ╔═╡ 6e8389d6-8f04-443e-bcc8-0bebc6a96ee9
@@ -774,6 +892,16 @@ function green(s::String)
 	HTML("<span style='color: hsl(148deg, 63%, 31%);'> $(s)  </span>")
 end;
 
+# ╔═╡ a8bba66f-719f-4254-bca0-64f41ea15e23
+md"""
+**$(green("Lab setup date: 17/APR/2023"))**
+"""
+
+# ╔═╡ 3469a638-b9bd-459d-9324-66e26cae2ef1
+md"""
+**$(green("Lab test date: 28/JUN/2023"))**
+"""
+
 # ╔═╡ 8ce86785-261e-4c5d-a81b-27c2e519a8f6
 md"""
 Load test on fuel cell Ballard 1200W (46A, 26Vdc).
@@ -783,24 +911,17 @@ In the paper [^Sevjidsuren2012] an energy analysis of the same Fuel Cell is repo
 **$(green("Lab test date: 20/DEC/2022"))**
 """
 
-# ╔═╡ a8bba66f-719f-4254-bca0-64f41ea15e23
-md"""
-**$(green("Lab setup date: 17/APR/2023"))**
-"""
-
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
-Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
-JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoTeachingTools = "661c6b06-c737-4d37-b85c-46df65de6f69"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 SankeyPlots = "8fd88ec8-d95c-41fc-b299-05f2225f2cc5"
 ShortCodes = "f62ebe17-55c5-4640-972f-b59c0dd11ccf"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
-JuMP = "~1.10.0"
 Plots = "~1.38.0"
 PlutoTeachingTools = "~0.2.5"
 PlutoUI = "~0.7.48"
@@ -814,7 +935,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.9.3"
 manifest_format = "2.0"
-project_hash = "d3e6bb1b238e379504a5b99a7baba431c33c5f5e"
+project_hash = "e117d858cbfa92ba51f919d7538ed19df3833259"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -2058,38 +2179,68 @@ version = "1.4.1+0"
 """
 
 # ╔═╡ Cell order:
-# ╟─f09d1eda-bfcb-4ab9-b1ce-2f59fd9747c9
 # ╟─60119a67-1aa0-4c7e-8514-45420e576d83
-# ╟─c3968558-28ee-49f1-9e87-d2d88f166abb
 # ╟─394b7f89-7259-4339-b6c9-df9e82fba253
-# ╟─6a4a8025-9184-4e93-a80e-eddea4857658
-# ╠═c5c096c9-36d2-49f3-9ce1-853eabf1aaf0
-# ╟─2ba7396c-20f4-4995-a609-7794e34c1648
+# ╟─586aa406-4a0d-4ea4-ae72-b902b058d91d
+# ╟─2021c870-64ad-4a24-8b92-c40821238ed5
+# ╟─f77c5b11-ab83-4d8b-bb53-af6f099c149b
+# ╟─e6925da9-67c8-4bb1-8830-1083b7da2a48
 # ╟─0323250e-3146-45ce-a87c-d8e53fa25938
-# ╟─7d086988-14ac-47fb-87dd-ed0235fa13d3
+# ╟─6a4a8025-9184-4e93-a80e-eddea4857658
+# ╟─0d054678-b051-4abe-a77d-6af8978edb28
+# ╟─2ba7396c-20f4-4995-a609-7794e34c1648
+# ╟─28680859-6a45-45ad-be10-6c25acec69d1
+# ╟─6dc1e172-1ab4-41cc-8f37-61dbea2bbd74
+# ╟─26dc5a86-b791-43d7-8765-64d05028339e
+# ╟─ca251372-9a6f-409c-aa17-1349fa142f1a
+# ╟─1ffa7d33-0ac5-45d5-bac9-6dd87f04e746
+# ╟─4d99b0ab-6b33-4151-a588-879a067b214b
+# ╟─010b1881-c38b-401e-ae17-2454bada5ff5
+# ╟─835e2385-67fb-482e-b20b-54892e91f0d0
+# ╟─d79eec48-ab14-427b-9f2a-188026c077f2
+# ╟─e7032de2-0abf-4fee-99b6-9c42a0a0cf0e
+# ╟─eb5030a1-38ad-4c1d-8396-5339b2e9ded1
+# ╟─585dbd3f-ab23-4d27-a647-012ce01a8152
+# ╟─b1d3a096-d314-49d0-b411-3f0f672a4472
+# ╟─a33bfab8-de02-453b-823b-260838e3c924
+# ╟─cb63e259-0ae8-4ab7-b947-845cccd14edd
+# ╟─c60c81a2-59de-4a1e-9fc2-9b8222500723
+# ╟─23d0e7e4-53c1-4831-9682-a00ef7724ae6
+# ╟─787f3852-638c-4bf4-b858-08097ca2fe69
+# ╟─4bf41846-4b76-4529-a531-61dd423cc372
+# ╟─1e5ccb00-5c36-4b9c-ba6c-9a7ce3301ffa
+# ╟─8b1e4d54-d043-4fad-a080-b680b8e7004b
+# ╟─2a8b7444-b8f2-4129-963c-2ec7da34d0a6
+# ╟─eb38cec0-2874-4926-b382-0b0a26f6e9ca
+# ╟─b68a96a3-1932-4be0-a141-31687c7d9f48
+# ╟─5a71fae5-3892-4097-bdaf-06243c413cc8
+# ╟─219174eb-e4dd-4cf5-a6d0-4c1092220cac
+# ╟─60dc702f-a5c2-4a5f-9a55-ee1ab5d45a16
+# ╟─4411700f-84a0-4884-b5d7-f86200b34a4d
+# ╟─8ee3b310-59b6-4c03-8268-a1f7b7a88e5b
+# ╟─b81df42a-65ad-47e8-9284-e43649780ac4
+# ╟─d4a2210b-1ba4-43a2-abc0-f05d5f3369e6
+# ╟─3ffee0c4-c356-43ac-91bc-df98c714c301
+# ╠═c5c096c9-36d2-49f3-9ce1-853eabf1aaf0
+# ╠═7d086988-14ac-47fb-87dd-ed0235fa13d3
 # ╠═e7002bff-26cc-4f1d-80cb-89da0adcb7dd
-# ╠═0d054678-b051-4abe-a77d-6af8978edb28
-# ╠═bf816930-4a28-11ed-18ae-ff9176a0e53f
+# ╠═2d187d7b-647e-4985-9f86-66d4e244849b
+# ╠═a5284c30-4807-45b9-87d3-a4eaead8cb1f
+# ╠═98888c66-7f45-4d1d-82cc-35453b7053c6
+# ╠═38924027-24cd-4957-bb5f-1c3f422cae65
+# ╠═15db28e6-b800-4e43-b4ff-079dae190e71
+# ╟─bf816930-4a28-11ed-18ae-ff9176a0e53f
 # ╟─442f8172-c833-42e8-9f58-d4674a2fb070
 # ╟─1ef6b34b-edd1-464b-a275-f53a30f21254
+# ╟─53ddc08a-e70d-4095-9a75-40ee8dbb8211
 # ╟─d7328acf-75dd-4a74-93e3-56a493b8f72e
-# ╟─ca251372-9a6f-409c-aa17-1349fa142f1a
+# ╟─b2ad314e-b115-4896-be75-2e29664f1873
 # ╟─dfb56aac-626b-4655-9321-99ab2fc74cfe
-# ╟─9c694aa7-2970-4de2-ada8-7ac34b4f37a2
-# ╟─2b376666-65bc-47f7-90a7-35decb87078a
-# ╟─8ce86785-261e-4c5d-a81b-27c2e519a8f6
-# ╟─bbeb147a-2cb2-4177-958f-4d6b171cbb28
-# ╠═e85d6f57-1d76-475f-ade0-fe85a82bc5ca
-# ╠═0314ef45-6b1c-4738-aad1-e26e3cdfaa66
-# ╠═dde18063-a566-4ba5-a918-5242eac54430
-# ╟─a9694e3c-b208-4021-908e-f79ac3fd813a
-# ╟─56bf6aa7-37e3-4ef8-afd7-c282289a8852
-# ╟─73cdec6e-71cb-4c5a-9b2f-cee0f90a4812
 # ╟─5c4efd0e-3db4-419e-b125-fa7a0645cef2
 # ╟─bf16906f-f285-471d-97ed-6dc359404bf3
 # ╟─af291ea0-b03c-4d77-aa75-670cd07a161d
 # ╟─a8bba66f-719f-4254-bca0-64f41ea15e23
-# ╠═e5ad7e3a-f912-45e9-9b15-add18ec3195a
+# ╟─e5ad7e3a-f912-45e9-9b15-add18ec3195a
 # ╟─e1d04a77-a5d1-456d-8af5-f3e46678e0a1
 # ╟─62e09a4f-3beb-4c2a-844f-76b32db8a9a8
 # ╟─2b48bce0-8278-4542-9214-b6b6aa05857a
@@ -2101,77 +2252,71 @@ version = "1.4.1+0"
 # ╟─4dc0b911-4ffc-4924-81f7-8a015ed5937a
 # ╟─f394202b-de77-4f89-b79d-38747f8e77d3
 # ╟─d861716d-b0c4-40f9-9fa2-5c8539480a18
-# ╟─9d28361c-d3b4-44af-9a9c-d13d4f911f1f
-# ╟─f8c559c3-8064-4f3c-a767-510eebc96d85
-# ╟─88dfac9b-737d-4057-a1ea-db6ad61e22ef
-# ╟─5a17bbf9-514f-4b2e-b8db-144c66f4af07
-# ╠═18f78524-7836-4719-9c39-6999a3789125
-# ╠═0d674fc4-d0a8-45a5-9c38-efd6e340fc54
-# ╠═1bda23b8-b8c0-4ad2-83c8-1b322cf4a119
-# ╠═a0cf81c4-a54e-4ee8-8813-3c1e989335cb
-# ╟─f9e7768e-28a0-4c3a-b3df-5930a0ae097b
-# ╠═c37c265d-57f9-41ec-9a85-f2cb90856cbf
-# ╠═00ce55cc-27fa-4540-9983-e1d696bad2d1
-# ╠═bfe09a62-2369-4f10-8898-1adfb46b275e
-# ╠═12345a52-fde5-41eb-ac49-21eb5ac2ee16
-# ╠═3bad4c86-867d-4e9c-99c5-9b316542a765
-# ╠═1d3f9163-d52f-4f50-baf3-a24d327e7f7c
-# ╟─c666b7b1-d810-43b3-85ee-77517f6ca409
-# ╠═92a0edf6-8f8b-4daf-a3a3-135ff12fd492
-# ╠═3f88433b-6256-428d-983b-e6fc6128efb5
-# ╠═5ad49800-5dc0-4642-b374-afccb139cf83
-# ╟─d572be50-93f1-4574-9afe-4320dfe517e2
-# ╟─191009da-e7c3-484e-b15c-755012216902
-# ╠═7b9e2ba5-3b8f-40a8-892d-862a361e0b93
-# ╟─75e0a7e1-fa8b-4368-bfbd-5cd42bbb90ef
-# ╟─8328d2d8-9ad5-4cf9-8006-30bf8b192e3e
-# ╟─9477af88-edf1-4403-be5d-0fabc7e68c5a
-# ╠═943e4e34-0e34-431b-8d5b-e6982af15e73
-# ╟─768c1823-5659-40ca-9f38-afa2cdeea85a
-# ╠═2878a88c-f60f-47dd-8814-dd17ea172ea6
-# ╠═20c7819f-6d17-45b5-b317-b91ed5dc7715
-# ╠═14256fdb-3da3-41b9-ad4f-17a51df2934c
-# ╠═985d7745-19b2-4e39-84eb-9b12982d42a4
-# ╠═0ccaefcd-fa8c-40c5-9dea-0600d4901add
-# ╠═7f94c1eb-b316-4726-a84a-7c7b0e814b29
-# ╠═8011d698-a78a-4371-bc57-49acc2bdd3b2
-# ╠═86af3f0d-5ca1-408c-9a17-e041d415ca21
-# ╠═b278cb84-febd-4e95-9f02-e2febc08e477
-# ╠═494c685d-d18e-43fb-adcc-8b8907fcf229
+# ╟─47a54e32-64a5-490c-a961-8a8337559084
+# ╟─5abbfab0-7258-49b5-9fac-875d41e638f8
+# ╟─3469a638-b9bd-459d-9324-66e26cae2ef1
+# ╟─2dec4c15-aadf-47bd-90df-3cb2ca47a3e4
+# ╠═92484dba-ce1f-4ecd-af10-7cc69ca8de55
+# ╟─9691e7ff-5315-4069-a054-a6a6e6f59e7a
+# ╠═cf2d1f51-6a81-48d8-9381-db126a50db82
+# ╠═eebc45e9-1bd8-4643-bc27-ff4d1baff6f2
+# ╟─7291ba85-af21-4304-b827-ce143f0cef2d
+# ╠═04812d9e-ad02-4a98-b2ab-b59d24f1cd42
+# ╟─64b1c646-1593-448a-8220-bb4772be9ccd
+# ╠═87bf639d-5a8d-421a-b66f-d8a988e6dfc2
+# ╟─da725eb6-5f2e-48f3-bd33-b8d8b99938ef
+# ╠═cef1de4b-fae3-4e22-8b1e-966dc95679c2
+# ╠═b595c94b-86ba-47b9-b1d7-90a8ff5ec3a8
+# ╟─6f248da1-6402-49df-865e-f21b34c22384
+# ╠═55540e29-fc35-427a-b5ec-e6999d5afe53
+# ╟─7d677c32-e403-4edb-8483-5c402a8e1d79
+# ╟─8c3173fb-c081-4e77-b6ee-f049f5aca096
+# ╠═beb665a0-a35a-471e-9d98-d1361d7d422d
+# ╟─a0e1330c-797a-4857-9d61-db654e7a35ee
+# ╠═24d94440-fabd-46df-b370-238001824180
+# ╠═6e63587b-bb79-460f-8928-49804a4ffca6
+# ╟─5963957e-32ef-440c-bf49-3bca94345871
+# ╟─226963fc-8853-4d0c-9af9-ea0d6f5b7f2a
+# ╟─5a5d5447-da04-4e10-ba62-a139de826525
+# ╠═09525d14-14d9-41a3-a193-e7df3df8eb09
+# ╟─16e8e2b1-4fd1-49d6-ae28-3fe25e74dd82
+# ╠═ff958c84-7268-43d8-810a-ac49babd5fed
+# ╟─d8596323-d680-48ea-9f98-6eb0a3c9228c
+# ╠═ac940486-3cb0-4869-9784-e14a87f4068a
+# ╟─d89d82d0-ac95-4ff8-aacc-72bd39abd175
+# ╠═041a455d-6d06-4129-b83a-2913060c0f43
+# ╟─645096a5-8b69-4a8c-a0e3-f1b33d1be51b
+# ╠═5ba29d1f-6a62-4d26-9436-074625ac7323
+# ╠═0c6e0052-fd18-4f46-a128-1f5148eedee7
+# ╠═8fe2b0b1-e314-4a10-982b-2dcc53350b7a
+# ╟─2b376666-65bc-47f7-90a7-35decb87078a
+# ╟─8ce86785-261e-4c5d-a81b-27c2e519a8f6
+# ╟─bbeb147a-2cb2-4177-958f-4d6b171cbb28
+# ╠═e85d6f57-1d76-475f-ade0-fe85a82bc5ca
+# ╠═0314ef45-6b1c-4738-aad1-e26e3cdfaa66
+# ╠═dde18063-a566-4ba5-a918-5242eac54430
+# ╟─a9694e3c-b208-4021-908e-f79ac3fd813a
+# ╟─56bf6aa7-37e3-4ef8-afd7-c282289a8852
+# ╟─73cdec6e-71cb-4c5a-9b2f-cee0f90a4812
 # ╟─166429fb-6148-414d-b717-2a32c610c321
-# ╠═8f50ab05-0053-46c5-97bc-751982cfc5f7
-# ╠═cd353619-814e-4114-a0eb-ad77896b418a
-# ╠═d5463e21-2f9d-4469-b51e-e349e4949f30
 # ╠═f0d2d1e1-279d-4fa7-9005-8d404724663c
 # ╠═47abef49-02ae-4bbf-9986-42629d25695f
 # ╠═de3ddaaa-5ffb-4c24-959e-bcd60ca9d548
 # ╠═9a00ece9-ddab-4206-9154-c0420d2bb801
 # ╠═684f263a-78ef-4251-b589-089192e9ed9b
 # ╠═bdfbb0ea-1f67-44fa-b74d-051c2aadee31
-# ╠═d998e69b-852c-4a02-ae4f-2f4444fafbfd
+# ╟─d998e69b-852c-4a02-ae4f-2f4444fafbfd
 # ╠═e030dc46-e87a-4429-8a61-3a51122b02b3
 # ╠═021628d0-a170-4e9c-8079-f50722bb03b9
 # ╠═85a0eb7e-3f79-46ee-a6fe-935e7ab7f331
 # ╠═adbe0aea-37b2-4208-8a49-829408a286f2
-# ╠═cf23420f-30e9-432f-8ef9-3fbd6498594d
-# ╠═2776bc41-7d1d-4876-b281-e93ccba93733
-# ╠═1592cd26-4c3a-4171-b306-e187b43f7258
-# ╠═e42d7c0c-559e-4507-be56-c87414749d19
-# ╠═0c69c9d1-4182-4e69-a1cc-14edd386ec24
 # ╠═01d9a20d-5b08-47ff-b96d-3e8582d2cff5
-# ╟─e969a627-d5bd-4595-a92c-2b855a2afd02
-# ╟─d1a72462-9716-420a-ba54-dddb1c2fc562
-# ╟─4cb19857-6643-4236-82f5-6f612e57c393
-# ╟─5bc5e16f-36d1-4c78-a493-ac3013eb2891
-# ╟─7ec19209-4590-466f-90f9-bf5a1b96e94e
-# ╟─b598e525-81a5-4451-a891-6e3cea23762f
+# ╠═b598e525-81a5-4451-a891-6e3cea23762f
 # ╟─5bbee908-beec-41c8-b4c4-c584a3791cd6
 # ╟─ecb76401-1476-4d64-829d-9c211fbbabdb
 # ╟─8f253d91-337f-4b8e-8664-bc76af44ed40
-# ╟─deb0ddc7-3e9f-44e7-9d23-cd1f2125c960
-# ╠═3d1e656a-502b-43d9-a0e5-ebae49794e34
-# ╟─ddeaf1bf-afae-4663-b69e-da5634c54c2b
 # ╟─1835dbf4-7c67-456e-b994-a2426184d08f
+# ╟─5be1de25-7c76-41e9-a37e-eff362e9a3b6
 # ╠═a66678a3-59ab-43cc-8a0d-fdeb0770f3e6
 # ╠═6e8389d6-8f04-443e-bcc8-0bebc6a96ee9
 # ╟─1f38147d-6723-4aa1-81b6-d55b3533c63a
